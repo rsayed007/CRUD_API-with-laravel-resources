@@ -1919,6 +1919,22 @@ __webpack_require__.r(__webpack_exports__);
 //
 //
 //
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 /* harmony default export */ __webpack_exports__["default"] = ({
   data: function data() {
     return {
@@ -1937,15 +1953,47 @@ __webpack_require__.r(__webpack_exports__);
     this.fetchArticles();
   },
   methods: {
-    fetchArticles: function fetchArticles() {
+    fetchArticles: function fetchArticles(page_url) {
       var _this = this;
 
-      fetch('api/articles').then(function (res) {
+      var vm = this;
+      page_url = page_url || 'api/articles';
+      fetch(page_url).then(function (res) {
         return res.json();
       }).then(function (res) {
         // console.log(res.data);
         _this.articles = res.data;
+        vm.makePagination(res.meta, res.links);
+      })["catch"](function (err) {
+        return console.log(err);
       });
+    },
+    makePagination: function makePagination(meta, links) {
+      var pagination = {
+        crount_page: meta.current_page,
+        last_page: meta.last_page,
+        prev_page_url: links.prev,
+        next_page_url: links.next
+      }; // console.log(pagination);
+
+      this.pagination = pagination;
+    },
+    deleteArticle: function deleteArticle(id) {
+      var _this2 = this;
+
+      if (confirm('Are you sure?')) {
+        fetch("api/articles/".concat(id), {
+          method: 'delete'
+        }).then(function (res) {
+          return res.json();
+        }).then(function (data) {
+          alert('Article Removed');
+
+          _this2.fetchArticles();
+        })["catch"](function (err) {
+          return console.log(err);
+        });
+      }
     }
   }
 });
@@ -37572,14 +37620,99 @@ var render = function() {
     [
       _c("h2", { staticClass: "text-center" }, [_vm._v("Article")]),
       _vm._v(" "),
+      _c("nav", { attrs: { "aria-label": "Page navigation example" } }, [
+        _c("ul", { staticClass: "pagination" }, [
+          _c(
+            "li",
+            {
+              staticClass: "page-item",
+              class: [{ disabled: !_vm.pagination.prev_page_url }]
+            },
+            [
+              _c(
+                "a",
+                {
+                  staticClass: "page-link",
+                  attrs: { href: "#" },
+                  on: {
+                    click: function($event) {
+                      return _vm.fetchArticles(_vm.pagination.prev_page_url)
+                    }
+                  }
+                },
+                [_vm._v("Previous")]
+              )
+            ]
+          ),
+          _vm._v(" "),
+          _c("li", { staticClass: "page-item disabled" }, [
+            _c("a", { staticClass: "page-link", attrs: { href: "#" } }, [
+              _vm._v(
+                "Page " +
+                  _vm._s(_vm.pagination.crount_page) +
+                  " of " +
+                  _vm._s(_vm.pagination.last_page)
+              )
+            ])
+          ]),
+          _vm._v(" "),
+          _c(
+            "li",
+            {
+              staticClass: "page-item",
+              class: [{ disabled: !_vm.pagination.next_page_url }]
+            },
+            [
+              _c(
+                "a",
+                {
+                  staticClass: "page-link",
+                  attrs: { href: "#" },
+                  on: {
+                    click: function($event) {
+                      return _vm.fetchArticles(_vm.pagination.next_page_url)
+                    }
+                  }
+                },
+                [_vm._v("Next")]
+              )
+            ]
+          )
+        ])
+      ]),
+      _vm._v(" "),
       _vm._l(_vm.articles, function(article) {
         return _c(
           "div",
           { key: article.id, staticClass: " card card-body mb-2" },
           [
-            _c("h3", [_vm._v(" " + _vm._s(article.title) + " ")]),
+            _c("h3", [
+              _c("span", { staticClass: " badge badge-success" }, [
+                _vm._v(_vm._s(article.id))
+              ]),
+              _vm._v(" " + _vm._s(article.title) + " ")
+            ]),
             _vm._v(" "),
-            _c("p", [_vm._v(" " + _vm._s(article.body) + " ")])
+            _c("p", [_vm._v(" " + _vm._s(article.body) + " ")]),
+            _vm._v(" "),
+            _c("div", { staticClass: "float-right" }, [
+              _c(
+                "button",
+                {
+                  staticClass: "btn",
+                  on: {
+                    click: function($event) {
+                      return _vm.deleteArticle(article.id)
+                    }
+                  }
+                },
+                [
+                  _c("span", { staticClass: "badge badge-danger" }, [
+                    _vm._v("Delete")
+                  ])
+                ]
+              )
+            ])
           ]
         )
       }),
